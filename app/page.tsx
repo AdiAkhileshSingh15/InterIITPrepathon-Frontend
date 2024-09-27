@@ -1,101 +1,97 @@
+"use client"
+import { useState } from 'react';
+import { Container, Typography, Button } from '@mui/material';
 import Image from "next/image";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [file, setFile] = useState<File | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
+  const [downloadLink, setDownloadLink] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFile = e.target.files?.[0] || null;
+    if (uploadedFile) {
+      setFile(uploadedFile);
+      const fileName = uploadedFile.name;
+      setHistory([...history, fileName]);
+      // logic to handle the file upload and api call
+      setDownloadLink('/path/to/generated/file'); // dummy link
+    }
+  };
+
+  const handleFileDownload = () => {
+    if (downloadLink) {
+      window.open(downloadLink, '_blank');
+    } else {
+      alert('No file available for download.');
+    }
+  };
+
+  return (
+    <Container maxWidth="md" className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
+        <section className='w-full flex-center flex-col'>
+          <Typography variant="h1" className='head_text text-center'>
+            Flare Dynamics Visualizer
+            <br className='max-md:hidden' />
+            <span className='blue_gradient text-center mt-8'>
+              Analyze Solar Flare Data
+            </span>
+          </Typography>
+
+          <form className="flex flex-col items-center w-full mt-8">
+            <Button
+              variant="contained"
+              component="label"
+              className="px-5 py-1.5 bg-primary-orange hover:bg-orange-400 focus:ring-gray-500 focus:ring-offset-gray-200 text-white transition ease-in duration-200 text-center text-base shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
+            >
+              Upload File
+              <input type="file" hidden onChange={handleFileUpload} />
+            </Button>
+          </form>
+
+          {file && (
+            <Typography variant="body1" className="mt-4">
+              Uploaded File: {file.name}
+            </Typography>
+          )}
+
+          {history.length > 0 && (
+            <div className="w-full mt-8">
+              <Typography variant="h5" className='green_gradient'>
+                Upload History
+              </Typography>
+              <ul>
+                {history.map((item, index) => (
+                  <li key={index} className='text-gray-600'>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex mt-8 space-x-4">
+            <Button
+              variant="contained"
+              onClick={handleFileDownload}
+              disabled={!file}
+              className="px-5 py-1.5 bg-primary-orange hover:bg-orange-400 focus:ring-gray-500 focus:ring-offset-gray-200 text-white transition ease-in duration-200 text-center text-base shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
+            >
+              Download CSV
+            </Button>
+          </div>
+
+          {isLoading && (
             <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+              src='assets/icons/loader.svg'
+              width={50}
+              height={50}
+              alt='loader'
+              className='object-contain mt-6'
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          )}
+        </section>
+      </div>
+    </Container>
   );
 }
