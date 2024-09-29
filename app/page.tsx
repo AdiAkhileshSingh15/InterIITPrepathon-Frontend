@@ -3,15 +3,13 @@ import { useEffect, useState } from 'react';
 import { Container, Typography, Button } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, TooltipProps } from 'recharts';
 import Image from "next/image";
-import axios from 'axios';
+import API from "@/utils/axios";
 
 export default function Home() {
   const [history, setHistory] = useState<{ fileName: string, lcLoad: any[], flareData: any[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [clickedPeakTime, setClickedPeakTime] = useState<number | null>(null);
-
-  const baseURL = 'http://localhost:3000';
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0] || null;
@@ -27,31 +25,23 @@ export default function Home() {
       const formData = new FormData();
       formData.append('file', uploadedFile);
 
-      try {
-        setIsLoading(true);
-        const response = await axios.post(`${baseURL}/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        console.log("File uploaded successfully:", response);
+      setIsLoading(true);
+      await API.post('upload', formData)
+        .then((res) => {
+          const lcLoad = res && res.detected_flares;
+          const flareDatapoints = res && res.lc_data;
 
-        const lcLoad = response.data && response.data.detected_flares;
-        const flareDatapoints = response.data && response.data.lc_data;
+          const flareData = flareDatapoints.map((point: any) => ({
+            time: point["time"],
+            rate: point["rate"],
+            status: point["status"],
+          }));
 
-        const flareData = flareDatapoints.map((point: any) => ({
-          time: point["time"],
-          rate: point["rate"],
-          status: point["status"],
-        }));
-
-        setHistory([...history, { fileName, lcLoad, flareData }]);
-        setSelectedFile(history.length);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-      } finally {
-        setIsLoading(false);
-      }
+          setHistory([...history, { fileName, lcLoad, flareData }]);
+          setSelectedFile(history.length);
+        })
+        .catch((err) => { console.error(err) });
+      setIsLoading(false);
     }
   };
 
@@ -60,23 +50,19 @@ export default function Home() {
       alert("Please select a file to download data");
       return;
     }
-    try {
-      const response = await axios.get(`${baseURL}/result/download`, {
-        responseType: 'blob',
-      });
+    await API.get('result/download', { responseType: 'blob' })
+      .then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'flare_data.csv');
+        document.body.appendChild(link);
+        link.click();
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'flare_data.csv');
-      document.body.appendChild(link);
-      link.click();
-
-      link.parentNode?.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((err) => { console.error(err) });
   }
 
   const CustomDot = (props: any) => {
