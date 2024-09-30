@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Provider>
+        <Provider session={null}>
           <div className="main">
             <div className="gradient" />
           </div>

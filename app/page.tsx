@@ -12,11 +12,11 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [clickedPeakTime, setClickedPeakTime] = useState<number | null>(null);
-  const { data: session } = useSession();
+  const { data: session }: any = useSession();
 
   useEffect(() => {
     const fetchData = async () => {
-      const userId = session?.user?.id;
+      const userId = session?.user.id;
       await axios.get(`/api/user/${userId}/files`, {
         headers: { 'Content-Type': 'application/json' }
       })
