@@ -4,12 +4,34 @@ import { Container, Typography, Button } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, TooltipProps } from 'recharts';
 import Image from "next/image";
 import API from "@/utils/axios";
+import axios from 'axios';
 
 export default function Home() {
-  const [history, setHistory] = useState<{ fileName: string, lcLoad: any[], flareData: any[] }[]>([]);
+  const [history, setHistory] = useState<{ fileName: string, result: any[], flareData: any[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [clickedPeakTime, setClickedPeakTime] = useState<number | null>(null);
+
+  let userId = '64a3d9b8f42b9b8aab1a4fbc';
+  useEffect(() => {
+    const fetchData = async () => {
+      await axios.get(`/api/user/${userId}/files`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then((res) => {
+          let fileHistory: { fileName: string, result: any[], flareData: any[] }[] = [];
+          if (res.data && res.data.length > 0) {
+            res.data.forEach((item: any) => {
+              fileHistory.push({ fileName: item.name, result: item.result, flareData: item.lcData });
+            });
+          }
+          setHistory(fileHistory);
+        })
+        .catch((err) => console.error(err));
+    };
+
+    fetchData();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0] || null;
@@ -26,43 +48,51 @@ export default function Home() {
       formData.append('file', uploadedFile);
 
       setIsLoading(true);
+      let result: any[][] = [];
+      let flareData: any[] = [];
       await API.post('upload', formData)
         .then((res) => {
-          const lcLoad = res && res.detected_flares;
-          const flareDatapoints = res && res.lc_data;
-
-          const flareData = flareDatapoints.map((point: any) => ({
+          result = res && res.detected_flares;
+          flareData = res && res.lc_data.map((point: any) => ({
             time: point["time"],
             rate: point["rate"],
             status: point["status"],
           }));
 
-          setHistory([...history, { fileName, lcLoad, flareData }]);
+          setHistory([...history, { fileName, result, flareData }]);
           setSelectedFile(history.length);
         })
-        .catch((err) => { console.error(err) });
+        .catch((err) => console.error(err));
+      await axios.post('/api/file/new', { userId: 1, name: fileName, result, lcData: flareData }, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then((res) => console.log(res))
+        .catch((err) => console.error(err));
       setIsLoading(false);
     }
   };
 
   const handleFileDownload = async () => {
-    if (selectedFile === null || history[selectedFile].lcLoad.length === 0) {
+    if (selectedFile === null || history[selectedFile].result.length === 0) {
       alert("Please select a file to download data");
       return;
     }
-    await API.get('result/download', { responseType: 'blob' })
-      .then((res) => {
-        const url = window.URL.createObjectURL(new Blob([res]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'flare_data.csv');
-        document.body.appendChild(link);
-        link.click();
+    // write result to csv file
+    let csvContent = "flare_type,start,precise_start,start_rate,peak,peak_rate,end,end_rate\n";
+    history[selectedFile].result[0].forEach((_: any, index: number) => {
+      csvContent += history[selectedFile].result.map((item) => item[index]).join(',') + '\n';
+    });
 
-        link.parentNode?.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      })
-      .catch((err) => { console.error(err) });
+    const fileBlob = new Blob([csvContent], { type: 'text/csv' });
+    const fileURL = URL.createObjectURL(fileBlob);
+    const link = document.createElement('a');
+    link.href = fileURL;
+    link.setAttribute('download', 'flare_data.csv');
+    document.body.appendChild(link);
+    link.click();
+
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(fileURL);
   }
 
   const CustomDot = (props: any) => {
@@ -153,7 +183,7 @@ export default function Home() {
                       style={{
                         cursor: 'pointer',
                         fontWeight: selectedFile === index ? 'bold' : 'normal',
-                        boxShadow: selectedFile === index ? '0px 4px 6px rgba(0, 0, 0, 0.1)' : 'none',
+                        boxShadow: selectedFile === index ? '0px 4px 8px rgba(0, 0, 0, 0.2),  0px -4px 8px rgba(0, 0, 0, 0.2)' : 'none',
                         transform: selectedFile === index ? 'scale(1.05)' : 'scale(1)',
                         transition: 'all 0.2s ease-in-out',
                         wordWrap: 'break-word',
@@ -209,22 +239,22 @@ export default function Home() {
                             </tr>
                           </thead>
                           <tbody className="text-gray-600 text-sm font-light">
-                            {Array.from({ length: history[selectedFile].lcLoad[0].length }, (_, i) => {
-                              const startTime = history[selectedFile].lcLoad[1][i];
-                              const peakTime = history[selectedFile].lcLoad[4][i];
-                              const endTime = history[selectedFile].lcLoad[6][i];
+                            {Array.from({ length: history[selectedFile].result[0].length }, (_, i) => {
+                              const startTime = history[selectedFile].result[1][i];
+                              const peakTime = history[selectedFile].result[4][i];
+                              const endTime = history[selectedFile].result[6][i];
 
                               const isRowHighlighted = isHighlighted(startTime) || isHighlighted(peakTime) || isHighlighted(endTime);
                               return (
                                 <tr key={i} className={`border-b border-gray-200 hover:bg-gray-100 ${isRowHighlighted ? 'bg-blue-100' : ''}`} style={{ transition: 'background-color 0.5s ease' }} onClick={() => setClickedPeakTime(peakTime)}>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[0][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[1][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[2][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[3][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[4][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[5][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[6][i]}</td>
-                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].lcLoad[7][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[0][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[1][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[2][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[3][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[4][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[5][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[6][i]}</td>
+                                  <td className="py-3 px-6 text-left whitespace-nowrap">{history[selectedFile].result[7][i]}</td>
                                 </tr>
                               )
                             })}
