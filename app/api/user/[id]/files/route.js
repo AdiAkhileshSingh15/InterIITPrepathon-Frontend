@@ -1,5 +1,5 @@
-import FlareData from "../../../../../models/flareData";
-import { connectToDB } from "../../../../../utils/database";
+import FlareData from "@/models/flareData";
+import { connectToDB } from '@/utils/database';
 
 export const GET = async (request, {params}) => {
     try {

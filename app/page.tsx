@@ -5,16 +5,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Image from "next/image";
 import API from "@/utils/axios";
 import axios from 'axios';
+import { useSession } from 'next-auth/react';
 
 export default function Home() {
   const [history, setHistory] = useState<{ fileName: string, result: any[], flareData: any[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [clickedPeakTime, setClickedPeakTime] = useState<number | null>(null);
+  const { data: session } = useSession();
 
-  let userId = '64a3d9b8f42b9b8aab1a4fbc';
   useEffect(() => {
     const fetchData = async () => {
+      const userId = session?.user?.id;
       await axios.get(`/api/user/${userId}/files`, {
         headers: { 'Content-Type': 'application/json' }
       })
@@ -30,8 +32,8 @@ export default function Home() {
         .catch((err) => console.error(err));
     };
 
-    fetchData();
-  }, []);
+    if (session?.user.id) fetchData();
+  }, [session?.user.id]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = e.target.files?.[0] || null;
@@ -63,7 +65,7 @@ export default function Home() {
           setSelectedFile(history.length);
         })
         .catch((err) => console.error(err));
-      await axios.post('/api/file/new', { userId: 1, name: fileName, result, lcData: flareData }, {
+      await axios.post('/api/file/new', { userId: session?.user?.id, name: fileName, result, lcData: flareData }, {
         headers: { 'Content-Type': 'application/json' }
       })
         .then((res) => console.log(res))
