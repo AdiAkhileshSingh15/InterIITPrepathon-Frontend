@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import FlareData from "@/models/flareData";
 import { connectToDB } from '@/utils/database';
 
