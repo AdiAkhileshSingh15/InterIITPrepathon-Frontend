@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: 'https://interiitprepathon-backend.onrender.com/',
+    baseURL: 'https://prepathon-backend.onrender.com/',
     headers: {
         'Content-Type': 'multipart/form-data',
     }
