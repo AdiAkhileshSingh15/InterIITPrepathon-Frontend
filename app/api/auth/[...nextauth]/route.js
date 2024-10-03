@@ -1,15 +1,30 @@
 import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
+import Google from 'next-auth/providers/google';
+import Github from 'next-auth/providers/github';
+// import LinkedIn from 'next-auth/providers/linkedin';
 
 import User from '@/models/user';
 import { connectToDB } from '@/utils/database';
+import Slack from 'next-auth/providers/slack';
 
 const handler = NextAuth({
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    })
+    }),
+    Github({
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    }),
+    // LinkedIn({
+    //   clientId: process.env.LINKEDIN_ID,
+    //   clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+    // }),
+    Slack({
+      clientId: process.env.SLACK_ID,
+      clientSecret: process.env.SLACK_CLIENT_SECRET,
+    }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   url: process.env.NEXTAUTH_URL,
