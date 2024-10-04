@@ -2,19 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { signIn, signOut, useSession, getProviders } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 const Nav = () => {
     const { data: session } = useSession();
-    const [providers, setProviders] = useState(null);
-
-    useEffect(() => {
-        (async () => {
-            const res: any = await getProviders();
-            setProviders(res);
-        })();
-    }, []);
 
     return (
         <nav className='flex-between w-full mb-16 pt-3'>
@@ -47,21 +38,7 @@ const Nav = () => {
                             />
                         </Link>
                     </div>
-                ) : (
-                    <>
-                        {providers &&
-                            Object.values(providers).map((provider: any) => (
-                                <button
-                                    type='button'
-                                    key={provider.name}
-                                    onClick={() => signIn(provider.id)}
-                                    className='black_btn'
-                                >
-                                    {provider.name}
-                                </button>
-                            ))}
-                    </>
-                )}
+                ) : null}
             </div>
 
             {/* Mobile Navigation */}
@@ -84,21 +61,7 @@ const Nav = () => {
                             Sign Out
                         </button>
                     </div>
-                ) : (
-                    <>
-                        {providers &&
-                            Object.values(providers).map((provider: any) => (
-                                <button
-                                    type='button'
-                                    key={provider.name}
-                                    onClick={() => signIn(provider.id)}
-                                    className='black_btn'
-                                >
-                                    Sign in
-                                </button>
-                            ))}
-                    </>
-                )}
+                ) : null}
             </div>
         </nav>
     );

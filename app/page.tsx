@@ -6,13 +6,22 @@ import Image from "next/image";
 import API from "@/utils/axios";
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [history, setHistory] = useState<{ fileName: string, result: any[], flareData: any[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<number | null>(null);
   const [clickedPeakTime, setClickedPeakTime] = useState<number | null>(null);
-  const { data: session }: any = useSession();
+  const { data: session, status }: any = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/login');
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
     const fetchData = async () => {
