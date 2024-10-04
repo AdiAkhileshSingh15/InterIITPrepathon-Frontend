@@ -19,6 +19,10 @@ export default function Home() {
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
+      alert('Please login to access this page');
+      router.push('/login');
+    } else if (session.user && !session.user.verified2fa) {
+      alert('Please verify 2FA to access this page');
       router.push('/login');
     }
   }, [status, session, router]);
