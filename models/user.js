@@ -13,7 +13,11 @@ const UserSchema = new Schema({
   },
   image: {
     type: String,
-  }
+  },
+  twoFactorSecret: {
+    type: String,
+    default: null,
+  },
 });
 
 const User = models.User || model("User", UserSchema);
