@@ -3,11 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import Profile from "./Profile";
 
 const Nav = () => {
     const { data: session } = useSession();
+    const [open, setOpen] = useState(false);
 
     return (
+        <>
         <nav className='flex-between w-full mb-16 pt-3'>
             <Link href='/' className='flex gap-2 flex-center'>
                 <Image
@@ -28,15 +32,16 @@ const Nav = () => {
                             Sign Out
                         </button>
 
-                        <Link href='/profile'>
-                            <Image
-                                src={session?.user.image || '/assets/images/profile.png'}
-                                width={37}
-                                height={37}
-                                className='rounded-full'
-                                alt='profile'
-                            />
-                        </Link>
+
+                        <Image
+                            src={session?.user.image || '/assets/images/profile.png'}
+                            width={37}
+                            height={37}
+                            className='rounded-full cursor-pointer'
+                            alt='profile'
+                            onClick={()=>setOpen(!open)}
+                        />
+
                     </div>
                 ) : null}
             </div>
@@ -51,6 +56,7 @@ const Nav = () => {
                             height={37}
                             className='rounded-full'
                             alt='profile'
+                            onClick={()=>setOpen(!open)}
                         />
 
                         <button
@@ -64,6 +70,8 @@ const Nav = () => {
                 ) : null}
             </div>
         </nav>
+        <Profile open={open} setOpen={setOpen} />
+        </>
     );
 };
 

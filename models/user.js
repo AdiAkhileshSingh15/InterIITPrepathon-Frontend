@@ -14,6 +14,17 @@ const UserSchema = new Schema({
   image: {
     type: String,
   },
+  password : {
+    type: String,
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordExpire: {
+    type: Date,
+    default: null,
+  },
   twoFactorSecret: {
     type: String,
     default: null,
