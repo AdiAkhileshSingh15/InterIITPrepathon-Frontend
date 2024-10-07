@@ -1,18 +1,14 @@
 "use client"
 import { Modal, Container } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import axios from "axios";
 export default function Profile({open, setOpen} : {open : boolean, setOpen : React.Dispatch<React.SetStateAction<boolean>>}) {
-    const [user, setUser] = useState<any | null>(null);
     const { data: session, status }: any = useSession();
     const [updatePassword, setUpdatePassword] = useState(false); 
     const [password, setPassword] = useState({oldPassword : '', password: '', confirmPassword: ''});
-    useEffect(()=>{
-        setUser(session?.user);
-    },[session])
 
     const handleOnClick = async() => {
         if(password.password !== password.confirmPassword) {
@@ -41,11 +37,11 @@ export default function Profile({open, setOpen} : {open : boolean, setOpen : Rea
     // Can only update password if user is verified
     return (
         <div>
-
         {   
-        user?.verified2fa && 
+        session?.user?.verified2fa && 
             <Modal open={open} onClose={()=>setOpen(false)}>
             <div className="flex flex-col justify-center h-screen">
+                <div className="flex justify-center">
                 <Container className="rounded-lg text-background m-10 border-2 bg-gray-100">
                     <div className="flex justify-end">
                         <AiOutlineClose 
@@ -55,14 +51,11 @@ export default function Profile({open, setOpen} : {open : boolean, setOpen : Rea
                     <div className="py-8 text-center font-satoshi text-3xl font-bold">Profile</div>
                     <div className="text-center items-center mb-10">
                         <div className="flex justify-center">
-                            <Image src={user?.image} alt="Profile Image" height={70} width={70} className="rounded-full" />
+                            <Image src={session?.user?.image || "/assets/icons/profile.svg"} alt="Profile Image" height={70} width={70} className="rounded-full" />
                         </div>
-                        {
-                            JSON.stringify(user)
-                        }
                         <div>
-                            <div className="font-bold text-lg">{user?.name || "Name"}</div>
-                            <div className="text-sm text-gray-500">{user?.email || "email"}</div>
+                            <div className="font-bold text-lg">{session?.user?.name || "Name"}</div>
+                            <div className="text-sm text-gray-500">{session?.user?.email || "email"}</div>
                         </div>
                             <div className="flex justify-center">
                                 <span className="bg-primary-orange cursor-pointer text-white rounded-md px-2 py-1 mt-4" onClick={()=>setUpdatePassword(!updatePassword)}>{updatePassword ? "Cancel Update" : "Update Pasword"}</span>
@@ -90,6 +83,7 @@ export default function Profile({open, setOpen} : {open : boolean, setOpen : Rea
                         )}
                     </div>
                 </Container>
+                </div>
 
             </div>
             </Modal>}

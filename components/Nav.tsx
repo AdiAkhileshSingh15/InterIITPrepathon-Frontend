@@ -39,7 +39,7 @@ const Nav = () => {
                             height={37}
                             className='rounded-full cursor-pointer'
                             alt='profile'
-                            onClick={()=>setOpen(!open)}
+                            onClick={()=>setOpen(true)}
                         />
 
                     </div>
@@ -56,7 +56,7 @@ const Nav = () => {
                             height={37}
                             className='rounded-full'
                             alt='profile'
-                            onClick={()=>setOpen(!open)}
+                            onClick={()=>setOpen(true)}
                         />
 
                         <button
@@ -70,7 +70,9 @@ const Nav = () => {
                 ) : null}
             </div>
         </nav>
+        <div>
         <Profile open={open} setOpen={setOpen} />
+        </div>
         </>
     );
 };

@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Github from 'next-auth/providers/github';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 // import LinkedIn from 'next-auth/providers/linkedin';
 
@@ -11,7 +11,7 @@ import Slack from 'next-auth/providers/slack';
 
 const handler = NextAuth({
   providers: [
-    CredentialsProvider({
+    Credentials({
       name: 'Credentials',
       credentials: {
         email: { label: "Email", type: "email" },
@@ -74,6 +74,11 @@ const handler = NextAuth({
 
         if(account?.provider === 'credentials') {
           if(!credentials) {
+            return false;
+          }
+          // check if user exists
+          const user = await User.findOne({ email: credentials.email });
+          if(!user) {
             return false;
           }
           return true;

@@ -27,9 +27,8 @@ export default function Signup() {
             const res = await axios.post('/api/user/new', credentials);
             console.log(res);
             if (res.status === 200) {
-                alert("User created successfully");
-                await signIn('credentials', credentials);
                 router.push('/login');
+                alert("User created successfully redirecting to login page");
             }
         } catch (error : any) {
             alert(error?.message);
