@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Github from 'next-auth/providers/github';
+import Credentials from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
 // import LinkedIn from 'next-auth/providers/linkedin';
 
 import User from '@/models/user';
@@ -9,6 +11,33 @@ import Slack from 'next-auth/providers/slack';
 
 const handler = NextAuth({
   providers: [
+    Credentials({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: {  label: "Password", type: "password" }
+      },
+      // Need to hash the password and validation is done here
+      async authorize(credentials) {
+        console.log("Authorizing credentials: ", credentials);
+        try {
+          await connectToDB();
+          const user = await User.findOne({ email : credentials.email });
+          if (!user) {
+            throw new Error('Invalid email or password');
+          }
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) {
+            throw new Error('Invalid email or password');
+          }
+          return { email: user.email, username: user.username, image: user.image };
+        }
+        catch (error) {
+          console.log("Error authorizing credentials: ", error.message);
+          throw new Error('Invalid email or password');
+        }
+      }
+    }),
     Google({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -41,6 +70,19 @@ const handler = NextAuth({
       try {
         await connectToDB();
         console.log("Sign in: ", profile);
+        console.log("Credentials: ", credentials);
+
+        if(account?.provider === 'credentials') {
+          if(!credentials) {
+            return false;
+          }
+          // check if user exists
+          const user = await User.findOne({ email: credentials.email });
+          if(!user) {
+            return false;
+          }
+          return true;
+        }
 
         // check if user already exists
         const userExists = await User.findOne({ email: profile.email });
