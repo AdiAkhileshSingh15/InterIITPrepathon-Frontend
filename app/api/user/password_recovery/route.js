@@ -33,7 +33,7 @@ export const POST = async (req) =>{
     );
 
     oauth2Client.setCredentials({
-      refresh_token: process.env.REFRESH_TOKEN,
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
     });
 
     const accessToken = await oauth2Client.getAccessToken();
@@ -46,7 +46,7 @@ export const POST = async (req) =>{
         user: process.env.EMAIL_USER,
         clientId: process.env.GOOGLE_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.REFRESH_TOKEN,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
         accessToken: accessToken.token,
       },
     });
